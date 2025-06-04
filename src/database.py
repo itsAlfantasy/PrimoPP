@@ -85,6 +85,19 @@ def get_all_items(db):
         return []
 
 
+def get_items_by_category(db, category):
+    """
+    Retrieve items from the 'items' collection filtered by category.
+    """
+    items_collection = db["items"]
+    try:
+        items = list(items_collection.find({"category": category}))
+        for item in items:
+            item["_id"] = str(item["_id"])
+        return items
+    except Exception as e:
+        print(f"Errore durante il recupero degli items per categoria: {e}")
+        return []
 
 
 # ====== Users ======
@@ -146,6 +159,23 @@ def delete_item(db, nome):
     except Exception as e:
         print(f"Errore durante l'eliminazione dell'item: {e}")
         return False
+
+
+def get_mean_price_by_category(db):
+    """
+    Calculate the mean price of items grouped by category.
+    """
+    items_collection = db["items"]
+    try:
+        pipeline = [
+            {"$group": {"_id": "$category", "mean_price": {"$avg": "$prezzo"}}}
+        ]
+        results = list(items_collection.aggregate(pipeline))
+        # Format output as a list of dicts with 'category' and 'mean_price'
+        return [{"category": r["_id"], "mean_price": r["mean_price"]} for r in results]
+    except Exception as e:
+        print(f"Errore durante il calcolo della media dei prezzi per categoria: {e}")
+        return []
 
 
 

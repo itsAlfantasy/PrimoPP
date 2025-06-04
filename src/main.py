@@ -14,6 +14,7 @@ class Item(BaseModel):
     nome: str
     prezzo: float
     timestamp: str
+    category: str  # New field for item category
 
 # Define the Pydantic model for a user
 class User(BaseModel):
@@ -56,14 +57,12 @@ async def get_user(name: str = None):
     return {"message": message}
 
 
-
 @app.get("/items")
 async def list_items():
     if db is None:
         raise HTTPException(status_code=500, detail="Database not available")
     items = get_all_items(db)
     return items
-
 
 
 @app.post("/addItem")
@@ -99,6 +98,7 @@ async def create_user(user: User):
     else:
         raise HTTPException(status_code=500, detail="Failed to add user")
 
+
 @app.get("/findUser")
 async def get_user_by_name(name: str):
     if db is None:
@@ -109,6 +109,7 @@ async def get_user_by_name(name: str):
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
+
 @app.delete("/deleteItem")
 async def remove_item(nome: str):
     if db is None:
@@ -118,6 +119,26 @@ async def remove_item(nome: str):
         return {"message": f"Item '{nome}' deleted successfully"}
     else:
         raise HTTPException(status_code=404, detail="Item not found")
+
+
+@app.get("/items/by_category")
+async def list_items_by_category(category: str):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not available")
+    from src.database import get_items_by_category
+    items = get_items_by_category(db, category)
+    return items
+
+
+@app.get("/indices")
+async def get_indices():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not available")
+    from src.database import get_mean_price_by_category
+    mean_price_by_category = get_mean_price_by_category(db)
+    return {
+        "mean_price_by_category": mean_price_by_category
+    }
 
 
 
